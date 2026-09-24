@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>You're Invited 🎉</title>
+<style>
+  :root {
+    --gold: #d4a94c;
+    --gold-dark: #a9791f;
+    --cream: #fffaf0;
+    --ink: #4a2f1a;
+    --navy: #2c3e6b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Segoe UI", "Trebuchet MS", system-ui, sans-serif;
+    background: linear-gradient(135deg, #fff3d6, #fff8ec 50%, #ffe9c2);
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* floating confetti background */
+  .confetti-bg {
+    position: fixed;
+    bottom: -40px;
+    pointer-events: none;
+    opacity: .7;
+    animation: floatUp linear forwards;
+    user-select: none;
+  }
+  @keyframes floatUp {
+    to { transform: translateY(-115vh) rotate(25deg); opacity: 0; }
+  }
+
+  .card {
+    position: relative;
+    z-index: 2;
+    background: var(--cream);
+    border-radius: 28px;
+    padding: 40px 32px 36px;
+    width: min(92vw, 480px);
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(169, 121, 31, .25);
+    border: 3px solid #f0d190;
+    animation: pop .6s cubic-bezier(.2, 1.4, .4, 1);
+  }
+  @keyframes pop { from { transform: scale(.7); opacity: 0; } }
+
+  .emoji { font-size: 64px; display: inline-block; animation: bounce 1.6s ease-in-out infinite; }
+  @keyframes bounce { 50% { transform: translateY(-10px) scale(1.06); } }
+
+  h1 { font-size: 1.7rem; margin: 14px 0 6px; color: var(--gold-dark); }
+  .sub { font-size: 1rem; opacity: .8; margin-bottom: 26px; }
+
+  .buttons { display: flex; gap: 18px; justify-content: center; align-items: center; min-height: 56px; }
+  button {
+    font: inherit;
+    font-weight: 700;
+    font-size: 1.1rem;
+    padding: 14px 34px;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+  }
+  #yes {
+    background: var(--gold);
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(169, 121, 31, .4);
+  }
+  #yes:hover { transform: scale(1.08); box-shadow: 0 8px 20px rgba(169, 121, 31, .55); }
+  #no {
+    background: #fff;
+    color: var(--gold-dark);
+    border: 2px solid var(--gold);
+    transition: left .25s cubic-bezier(.2, 1.2, .4, 1), top .25s cubic-bezier(.2, 1.2, .4, 1);
+  }
+  #no.running { position: fixed; z-index: 10; }
+
+  .hint { margin-top: 22px; font-size: .85rem; opacity: .6; min-height: 1.2em; }
+
+  /* program view */
+  #programView { display: none; }
+  .show-program #askView { display: none; }
+  .show-program #programView { display: block; animation: pop .7s cubic-bezier(.2, 1.4, .4, 1); }
+  #programView h2 { color: var(--gold-dark); font-size: 1.5rem; margin: 6px 0 4px; }
+  #programView .who { font-size: 1.1rem; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  #programView .when { font-size: .95rem; opacity: .75; margin-bottom: 18px; }
+
+  .program-list {
+    text-align: left;
+    max-height: 50vh;
+    overflow-y: auto;
+    padding: 4px 6px;
+  }
+  .program-item {
+    display: flex;
+    gap: 14px;
+    align-items: baseline;
+    padding: 10px 6px;
+    border-bottom: 1px dashed #f0d190;
+    opacity: 0;
+    animation: rise .8s ease forwards;
+  }
+  .program-item:last-child { border-bottom: none; }
+  .program-item .time {
+    flex: 0 0 auto;
+    font-weight: 700;
+    color: var(--gold-dark);
+    font-size: .9rem;
+    white-space: nowrap;
+  }
+  .program-item .desc { flex: 1; }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  .signoff { margin-top: 22px; font-weight: 700; color: var(--gold-dark); }
+
+  /* photo */
+  .photo-bg {
+    position: fixed;
+    inset: -5%;
+    z-index: 0;
+    background: url("photo.jpg") center / cover no-repeat;
+    filter: blur(28px) brightness(.6) saturate(1.15);
+    opacity: 0;
+    transition: opacity 1.8s ease;
+    pointer-events: none;
+  }
+  .photo-main {
+    position: fixed;
+    z-index: 1;
+    object-fit: contain;
+    opacity: 0;
+    transform: scale(.96);
+    transition: opacity 1.8s ease, transform 1.8s ease;
+    filter: drop-shadow(0 10px 30px rgba(0,0,0,.5));
+    pointer-events: none;
+    top: 2vh; left: 4vw; width: 92vw; height: 32vh;
+  }
+  .show-program .photo-bg { opacity: 1; }
+  .show-program .photo-main { opacity: 1; animation: kenburns 20s ease-in-out 1.8s infinite alternate; }
+  @keyframes kenburns {
+    from { transform: scale(1); }
+    to   { transform: scale(1.04) translateY(-.5%); }
+  }
+
+  .show-program { align-items: flex-end; padding-bottom: 2vh; }
+  .show-program .card { max-height: 62vh; display: flex; flex-direction: column; padding: 20px 18px 18px; }
+  .show-program .card #programView { display: flex; flex-direction: column; min-height: 0; }
+  .show-program .emoji { font-size: 34px; }
+  .show-program .program-list { flex: 1; min-height: 0; }
+
+  @media (min-aspect-ratio: 1/1) {
+    .photo-main { top: 4vh; left: 4vw; width: 44vw; height: 92vh; }
+    .show-program { align-items: center; justify-content: flex-end; padding: 0 4vw 0 0; }
+    .show-program .card { max-height: 92vh; width: min(48vw, 580px); padding: 30px 28px 26px; }
+    .show-program .emoji { font-size: 48px; }
+  }
+
+  .show-program .card {
+    background: rgba(40, 26, 10, .45);
+    border-color: rgba(240, 209, 144, .5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #fff8ea;
+  }
+  .show-program h2, .show-program .who { color: #ffd98c; text-shadow: 0 2px 10px rgba(0,0,0,.5); }
+  .show-program .when, .show-program .signoff { color: #ffe9be; }
+  .show-program .program-item { border-bottom-color: rgba(240,209,144,.35); }
+  .show-program .program-item .time { color: #ffd98c; }
+  .program-list::-webkit-scrollbar { width: 6px; }
+  .program-list::-webkit-scrollbar-thumb { background: rgba(240,209,144,.5); border-radius: 3px; }
+
+  /* confetti drifting over the photo */
+  .sparkle {
+    position: fixed;
+    z-index: 1;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #ffe08a;
+    box-shadow: 0 0 10px 3px rgba(255, 224, 138, .8);
+    pointer-events: none;
+    animation: drift linear forwards;
+  }
+  @keyframes drift {
+    0%   { opacity: 0; transform: translateY(0) scale(.6); }
+    20%  { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-40vh) translateX(30px) scale(1.2); }
+  }
+</style>
+</head>
+<body>
+
+<div class="photo-bg" aria-hidden="true"></div>
+<img class="photo-main" src="photo.jpg" alt="Celebrant" aria-hidden="true">
+
+<div class="card" id="card">
+  <!-- Question -->
+  <div id="askView">
+    <div class="emoji">🎂</div>
+    <h1>Will you attend the birthday?</h1>
+    <p class="sub" id="askSub">Celebrating a very special life. 🎈</p>
+    <div class="buttons">
+      <button id="yes" type="button">Yes 🎉</button>
+      <button id="no" type="button">No</button>
+    </div>
+    <p class="hint" id="hint"></p>
+  </div>
+
+  <!-- Program -->
+  <div id="programView">
+    <div class="emoji">🎈</div>
+    <h2 id="progTitle">Birthday Celebration</h2>
+    <div class="who" id="progWho">In Honor of [Name]</div>
+    <div class="when" id="progWhen">[Date] · Starting 11:00 AM</div>
+    <div class="program-list" id="programList"></div>
+    <p class="signoff" id="signoff">We can't wait to celebrate with you! 🎉</p>
+  </div>
+</div>
+
+<script>
+  /* ============ EDIT THESE ============ */
+  const CELEBRANT_NAME = "Vatiroji";
+  const EVENT_DATE = "26 September";
+  const VENUE = "Manjemu Homestead, Gutu";
+  const DRESS_CODE = "Smart Casual";
+
+  document.getElementById("progWho").textContent = "In Honor of " + CELEBRANT_NAME;
+  document.getElementById("progWhen").textContent =
+    EVENT_DATE + " · " + VENUE + " · Starting 11:00 AM";
+  document.getElementById("askSub").textContent =
+    "Join us as we celebrate " + CELEBRANT_NAME + "'s birthday (born 1949). 🎈 Dress code: " + DRESS_CODE + ".";
+
+  const PROGRAM = [
+    ["11:00 AM", "Opening Prayer"],
+    ["11:10 AM", "A Word from the Bible"],
+    ["11:20 AM", "Welcome & Introductions"],
+    ["11:35 AM", "Life History / Tribute to Vatiroji"],
+    ["11:50 AM", "Words of Appreciation from Family"],
+    ["12:05 PM", "Special Song / Performance"],
+    ["12:20 PM", "Cutting of the Cake"],
+    ["12:35 PM", "Toast & Blessing of Vatiroji"],
+    ["12:45 PM", "Gifts & Well-Wishes"],
+    ["1:00 PM",  "Lunch & Fellowship"],
+    ["2:00 PM",  "Closing Prayer & Vote of Thanks"],
+  ];
+  /* ==================================== */
+
+  const listEl = document.getElementById("programList");
+  PROGRAM.forEach(([time, desc], i) => {
+    const item = document.createElement("div");
+    item.className = "program-item";
+    item.style.animationDelay = 0.4 + i * 0.12 + "s";
+    item.innerHTML = `<span class="time">${time}</span><span class="desc">${desc}</span>`;
+    listEl.appendChild(item);
+  });
+
+  const yes = document.getElementById("yes");
+  const no = document.getElementById("no");
+  const hint = document.getElementById("hint");
+  const hints = [
+    "Come on, No doesn't want to be clicked…",
+    "Nope, can't catch it 😏",
+    "It really doesn't want to be pressed!",
+    "Just press Yes, you know you want to 🎉",
+    "No is on vacation.",
+  ];
+  let dodges = 0;
+
+  function runAway() {
+    const w = no.offsetWidth, h = no.offsetHeight, pad = 12;
+    const maxX = window.innerWidth - w - pad;
+    const maxY = window.innerHeight - h - pad;
+    let x, y, tries = 0;
+    const cur = no.getBoundingClientRect();
+    do {
+      x = pad + Math.random() * Math.max(maxX - pad, 1);
+      y = pad + Math.random() * Math.max(maxY - pad, 1);
+      tries++;
+    } while (tries < 20 && Math.hypot(x - cur.left, y - cur.top) < 160);
+
+    if (!no.classList.contains("running")) {
+      no.style.left = cur.left + "px";
+      no.style.top = cur.top + "px";
+      no.classList.add("running");
+      no.getBoundingClientRect(); // force reflow
+    }
+    no.style.left = x + "px";
+    no.style.top = y + "px";
+
+    hint.textContent = hints[dodges++ % hints.length];
+  }
+
+  // Dodge as the cursor approaches, not just when it touches
+  document.addEventListener("pointermove", (e) => {
+    const r = no.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    if (Math.hypot(e.clientX - cx, e.clientY - cy) < 110) runAway();
+  });
+  ["pointerenter", "pointerdown", "touchstart", "mousedown", "click", "focus"].forEach((ev) =>
+    no.addEventListener(ev, (e) => { e.preventDefault(); runAway(); no.blur(); }, { passive: false })
+  );
+  window.addEventListener("resize", () => {
+    if (no.classList.contains("running")) runAway();
+  });
+
+  // Yes → reveal the program
+  yes.addEventListener("click", () => {
+    document.body.classList.add("show-program");
+    no.style.display = "none";
+    for (let i = 0; i < 40; i++) setTimeout(spawnConfetti, i * 60);
+    setInterval(spawnSparkle, 350);
+  });
+
+  function spawnSparkle() {
+    const el = document.createElement("div");
+    el.className = "sparkle";
+    el.style.left = Math.random() * 100 + "vw";
+    el.style.top = 40 + Math.random() * 60 + "vh";
+    const dur = 3 + Math.random() * 3;
+    el.style.animationDuration = dur + "s";
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), dur * 1000);
+  }
+
+  // Floating confetti
+  const CONFETTI = ["🎉", "🎈", "🎊", "✨", "🎂", "🌟"];
+  function spawnConfetti() {
+    const el = document.createElement("div");
+    el.className = "confetti-bg";
+    el.textContent = CONFETTI[Math.floor(Math.random() * CONFETTI.length)];
+    el.style.left = Math.random() * 100 + "vw";
+    el.style.fontSize = 16 + Math.random() * 28 + "px";
+    const dur = 6 + Math.random() * 6;
+    el.style.animationDuration = dur + "s";
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), dur * 1000);
+  }
+  setInterval(spawnConfetti, 700);
+</script>
+</body>
+</html>
